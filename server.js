@@ -2516,7 +2516,7 @@ cache(function(data, match, sendBadge, request) {
   var apiUrl = 'https://api.github.com/repos/' + user + '/' + repo + '/tags';
   // Using our OAuth App secret grants us 5000 req/hour
   // instead of the standard 60 req/hour.
-  if (serverSecrets) {
+  if (serverSecrets && serverSecrets.gh_client_id) {
     apiUrl += '?client_id=' + serverSecrets.gh_client_id
       + '&client_secret=' + serverSecrets.gh_client_secret;
   }
@@ -4539,6 +4539,9 @@ var githubHeaders = {
   'User-Agent': 'Shields.io',
   'Accept': 'application/vnd.github.v3+json'
 };
+if (serverSecrets && serverSecrets.gh_token) {
+  githubHeaders['Authorization'] = 'token ' + serverSecrets.gh_token;
+}
 
 // Given a number, string with appropriate unit in the metric system, SI.
 // Note: numbers beyond the peta- cannot be represented as integers in JS.
