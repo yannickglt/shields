@@ -2,6 +2,7 @@ var secureServer = !!process.env.HTTPS;
 var serverPort = +process.env.PORT || +process.argv[2] || (secureServer? 443: 80);
 var bindAddress = process.env.BIND_ADDRESS || process.argv[3] || '::';
 var infoSite = process.env.INFOSITE || "http://shields.io";
+var npmRegistry = process.env.NPM_REGISTRY || "http://registry.npmjs.org";
 var Camp = require('camp');
 var camp = Camp.start({
   documentRoot: __dirname,
@@ -1287,7 +1288,7 @@ camp.route(/^\/npm\/v\/(.*)\.(svg|png|gif|jpg|json)$/,
 cache(function(data, match, sendBadge, request) {
   var repo = encodeURIComponent(match[1]);  // eg, "express" or "@user/express"
   var format = match[2];
-  var apiUrl = 'https://registry.npmjs.org/' + repo + '/latest';
+  var apiUrl = npmRegistry + '/' + repo + '/latest';
   var badgeData = getBadgeData('npm', data);
   // Using the Accept header because of this bug:
   // <https://github.com/npm/npmjs.org/issues/163>
@@ -1316,7 +1317,7 @@ camp.route(/^\/npm\/l\/(.*)\.(svg|png|gif|jpg|json)$/,
 cache(function(data, match, sendBadge, request) {
   var repo = encodeURIComponent(match[1]);  // eg, "express" or "@user/express"
   var format = match[2];
-  var apiUrl = 'http://registry.npmjs.org/' + repo + '/latest';
+  var apiUrl = npmRegistry + '/' + repo + '/latest';
   var badgeData = getBadgeData('license', data);
   request(apiUrl, { headers: { 'Accept': '*/*' } }, function(err, res, buffer) {
     if (err != null) {
@@ -1347,7 +1348,7 @@ camp.route(/^\/node\/v\/(.*)\.(svg|png|gif|jpg|json)$/,
 cache(function(data, match, sendBadge, request) {
   var repo = encodeURIComponent(match[1]);  // eg, "express" or "@user/express"
   var format = match[2];
-  var apiUrl = 'https://registry.npmjs.org/' + repo + '/latest';
+  var apiUrl = npmRegistry + '/' + repo + '/latest';
   var badgeData = getBadgeData('node', data);
   // Using the Accept header because of this bug:
   // <https://github.com/npm/npmjs.org/issues/163>
