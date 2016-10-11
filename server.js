@@ -3120,6 +3120,68 @@ cache(function(data, match, sendBadge, request) {
   });
 }));
 
+// GitHub PR state (open/close + mergeability) integration.
+camp.route(/^\/github\/pr-state\/([^\/]+)\/([^\/]+)\/([^\/]+)\.(svg|png|gif|jpg|json)$/,
+cache(function (data, match, sendBadge, request) {
+  var user = match[1];  // eg, badges
+  var repo = match[2];  // eg, shields
+  var issue = match[3];  // eg, 123
+  var format = match[4];
+
+  var badgeData = getBadgeData('PR state', data);
+
+  var apiUrl = githubApiUrl + '/repos/' + user + '/' + repo + '/pulls/' + issue;
+  githubAuth.request(request, apiUrl, {}, function (err, res, buffer) {
+    if (err !== null) {
+      sendInaccessibleBadge();
+      return;
+    }
+
+    try {
+      var parsedResponse = JSON.parse(buffer);
+
+      var responseIsIssueLike = parsedResponse.hasOwnProperty('state') &&
+          parsedResponse.hasOwnProperty('merged') &&
+          parsedResponse.hasOwnProperty('mergeable') &&
+          parsedResponse.hasOwnProperty('mergeable_state');
+
+      var badgeText = 'inaccessible';
+      if (responseIsIssueLike) {
+        if (parsedResponse.state === 'closed') {
+          // PR is closed => check if it was merged or not
+          if (parsedResponse.merged) {
+            badgeText = 'merged';
+            badgeData.colorscheme = null;
+            badgeData.colorB = '#6e5494'; // purple-ish color from Github
+          } else {
+            badgeText = 'closed';
+            badgeData.colorscheme = 'red';
+          }
+        } else if (parsedResponse.state === 'open') {
+          // 'clean', 'unstable', 'dirty' or 'unknown'
+          badgeText = parsedResponse.mergeable_state;
+          if (parsedResponse.mergeable === null) {
+            badgeData.colorscheme = 'lightgrey';
+          } else if (parsedResponse.mergeable) {
+            badgeData.colorscheme = (parsedResponse.mergeable_state === 'unstable') ? 'yellow' : 'green';
+          } else {
+            badgeData.colorscheme = 'red';
+          }
+        }
+      }
+      badgeData.text[1] = badgeText;
+      sendBadge(format, badgeData);
+    } catch(e) {
+      sendInaccessibleBadge();
+    }
+
+    function sendInaccessibleBadge() {
+      badgeData.text[1] = 'inaccessible';
+      sendBadge(format, badgeData);
+    }
+  });
+}));
+
 // GitHub forks integration.
 camp.route(/^\/github\/forks\/([^\/]+)\/([^\/]+)\.(svg|png|gif|jpg|json)$/,
 cache(function(data, match, sendBadge, request) {
