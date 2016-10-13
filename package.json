@@ -30,7 +30,9 @@
     "rc": "^1.1.6"
   },
   "scripts": {
-    "test": "node test/test.js"
+    "start": "node server 8080",
+    "test": "node test/test.js",
+    "deploy-heroku": "cp /Library/Fonts/Verdana.ttf . && echo '{}' > secret.json && make deploy-heroku"
   },
   "bin": { "badge": "./gh-badge.js" },
   "files": [
